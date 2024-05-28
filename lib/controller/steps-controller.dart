@@ -70,6 +70,7 @@ class DataModel extends ChangeNotifier {
     start = false;
     hasPassedStepOne = false;
     hasPassedStepTwo = false;
+    steps = GestureSteps.start;
     notifyListeners();
   }
 

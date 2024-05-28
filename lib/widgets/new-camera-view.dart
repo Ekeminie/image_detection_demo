@@ -61,21 +61,22 @@ class _CameraViewState extends ConsumerState<ICameraView> {
   @override
   void initState() {
     _mode = DetectorViewMode.liveFeed;
-    super.initState();
-
     _initialize();
+    super.initState();
   }
 
   void _initialize() async {
     if (_cameras.isEmpty) {
       _cameras = await availableCameras();
     }
+    // _controller = CameraController(_cameras[0], ResolutionPreset.low);
     for (var i = 0; i < _cameras.length; i++) {
       if (_cameras[i].lensDirection == widget.initialCameraLensDirection) {
         _cameraIndex = i;
         break;
       }
     }
+    // _startLiveFeed();
     if (_cameraIndex != -1) {
       _startLiveFeed();
     }
@@ -87,9 +88,18 @@ class _CameraViewState extends ConsumerState<ICameraView> {
   }
 
   Widget _liveFeedBody() {
-    if (_cameras.isEmpty) return Container();
-    if (_controller == null) return Container();
-    if (_controller?.value.isInitialized == false) return Container();
+    if (_cameras.isEmpty)
+      return Container(
+        color: Colors.red,
+      );
+    if (_controller == null)
+      return Container(
+        color: Colors.orange,
+      );
+    if (_controller?.value.isInitialized == false)
+      return Container(
+        color: Colors.brown,
+      );
     return ColoredBox(
       color: Colors.black,
       child: Stack(
@@ -155,7 +165,6 @@ class _CameraViewState extends ConsumerState<ICameraView> {
       );
 
   Future _startLiveFeed() async {
-    final c = ref.watch(controllerProvider);
     final camera = _cameras[_cameraIndex];
     _controller = CameraController(
       camera,
@@ -192,7 +201,7 @@ class _CameraViewState extends ConsumerState<ICameraView> {
           // widget.onCameraLensDirectionChanged!(camera.lensDirection);
         }
       });
-      c.initCameraController(_controller);
+
       setState(() {});
     });
   }
@@ -230,34 +239,29 @@ class _CameraViewState extends ConsumerState<ICameraView> {
       );
       _customPaint = CustomPaint(painter: painter);
       for (var face in faces) {
-        // print("leftEyeOpenProbability:::${face.leftEyeOpenProbability}");
-        // print("smilling probability:::${face.smilingProbability}");
-
         if (dataController.steps == GestureSteps.start) {
-          print('detecting smile');
+          debugPrint('detecting smile');
           if ((face.smilingProbability ?? 0.0) >= 0.6) {
-            print(':::You are smilling else ');
+            debugPrint(':::You are smiling else ');
             dataController.nextStep();
-            await Future.delayed(Duration(seconds: 1));
+            await Future.delayed(const Duration(seconds: 1));
           } else {
-            print(':::You are not smilling else ');
+            debugPrint(':::You are not smiling else ');
           }
         } else if (dataController.steps == GestureSteps.hasStepOne) {
           ///check for blinking
-          print('detecting blink');
+          debugPrint('detecting blink');
           if ((face.leftEyeOpenProbability ?? 0.0) <= 0.6 &&
               (face.rightEyeOpenProbability ?? 0.0) <= 0.6) {
-            print('blinked:::');
+            debugPrint('blinked:::');
             dataController.nextStep();
-            await Future.delayed(const Duration(seconds: 1));
+            await Future.delayed(const Duration(milliseconds: 100));
             await takePicture();
-            _stopLiveFeed();
-            Navigator.pop(context);
+            // _stopLiveFeed();
+            Navigator.pop(context, dataController.file);
             return;
-            // captureImage();
-            // dataController.capture(() async => await captureImage());
           } else {
-            print('not blinked:::');
+            debugPrint('not blinked:::');
           }
         }
       }

@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
 
 class FaceCaptureDemo extends ConsumerWidget {
   FaceCaptureDemo({super.key});
-  ValueNotifier<File?> image = ValueNotifier(null);
+  ValueNotifier<XFile?> image = ValueNotifier(null);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -49,8 +49,10 @@ class FaceCaptureDemo extends ConsumerWidget {
               ),
             GestureDetector(
                 onTap: () async {
-                  File? imagePath = await KycImageCapture.instance
-                      .captureImage(context) as File?;
+                  c.reset();
+                  XFile? imagePath =
+                      await KycImageCapture.instance.captureImage(context);
+                  image.value = imagePath;
                 },
                 child: Container(
                     padding: const EdgeInsets.all(12),
@@ -61,8 +63,9 @@ class FaceCaptureDemo extends ConsumerWidget {
             const SizedBox(height: 14),
             GestureDetector(
                 onTap: () async {
-                  String? imagePath = await KycImageCapture.instance
+                  XFile? imagePath = await KycImageCapture.instance
                       .captureImage(context, auto: false);
+                  image.value = imagePath;
                 },
                 child: Container(
                     padding: const EdgeInsets.all(12),
@@ -74,7 +77,10 @@ class FaceCaptureDemo extends ConsumerWidget {
                 valueListenable: image,
                 builder: (context, photo, _) => photo != null
                     ? Visibility(
-                        visible: photo != null, child: Image.file(photo))
+                        visible: photo != null,
+                        child: AspectRatio(
+                            aspectRatio: 3 / 2,
+                            child: Image.file(File(photo.path))))
                     : const SizedBox.shrink()),
             const Spacer(),
           ],
